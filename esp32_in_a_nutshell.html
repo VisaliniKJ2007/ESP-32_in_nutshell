@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ESP32 in a Nutshell – Embedded Systems Learning Page</title>
+<style>
+:root{--paper:#eef2f1;--ink:#14231f;--mask:#0b3a2d;--deep:#07261e;--cu:#c27a36;--sig:#27b39b;--card:#fff;--line:#d3dedb;--ok:#1d7a3a;--bad:#b3261e;--side:248px}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font:16.5px/1.7 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;display:grid;grid-template-columns:var(--side) minmax(0,1fr);grid-template-rows:auto 1fr}
+h1,h2,h3{font-family:"Trebuchet MS","Segoe UI",sans-serif;letter-spacing:-.01em}
+nav{grid-column:1;grid-row:1/3;position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--deep);padding:26px 0;display:flex;flex-direction:column;gap:2px}
+nav::before{content:"ESP32 in a Nutshell";color:#fff;font:700 19px "Trebuchet MS",sans-serif;padding:0 22px 18px;margin-bottom:8px;border-bottom:1px solid #1f4a3d}
+nav a{color:#a9cbbf;text-decoration:none;padding:9px 22px;font-size:15px;border-left:4px solid transparent;transition:background .15s,color .15s}
+nav a:hover{background:#0e3a2f;color:#fff}
+nav a.on{color:#fff;background:#0e3a2f;border-left-color:var(--cu);font-weight:600}
+header{grid-column:2;grid-row:1;color:#e8f4ef;padding:44px 6vw 34px;background:
+radial-gradient(circle at 92% 22%,var(--cu) 0 5px,transparent 6px),radial-gradient(circle at 78% 70%,var(--sig) 0 4px,transparent 5px),radial-gradient(circle at 60% 30%,var(--cu) 0 4px,transparent 5px),
+linear-gradient(90deg,transparent 58%,rgba(39,179,155,.35) 58% 58.3%,transparent 58.3%),linear-gradient(0deg,transparent 70%,rgba(194,122,54,.4) 70% 70.5%,transparent 70.5%),
+linear-gradient(135deg,var(--mask),#0a2f25)}
+header h1{margin:0 0 10px;font-size:clamp(32px,5.5vw,56px);line-height:1.05}
+header p{margin:5px 0;max-width:68ch;color:#c9e2d9}
+header ul{columns:2;max-width:68ch;padding-left:20px;margin:8px 0 0;color:#dff0ea;font-size:15px}
+main{grid-column:2;grid-row:2;padding:6px 6vw 70px;max-width:1000px}
+section{margin-top:30px;display:none}section.active{display:block;animation:in .25s ease}
+@keyframes in{from{opacity:0}to{opacity:1}}
+h2{font-size:30px;color:var(--mask);margin:0 0 14px;display:flex;align-items:center;gap:12px}
+h2::before{content:"";width:14px;height:14px;border-radius:50%;background:var(--cu);box-shadow:0 0 0 4px #f0dcc7;flex:none}
+h3{font-size:19px;margin:26px 0 8px;color:#0e4a38}
+p{max-width:75ch}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 22px;margin:16px 0;box-shadow:0 1px 2px rgba(11,58,45,.06)}
+.key{border-radius:10px;background:linear-gradient(90deg,#fdf1e3,#fff);border:1px solid #ecd2b4;border-left:6px solid var(--cu);padding:12px 18px;margin:16px 0}
+.eq{background:var(--deep);color:#d5f3e9;border-radius:6px;padding:10px 16px;margin:10px 0;font:18px/1.5 "Cambria Math",Cambria,Georgia,serif;overflow-x:auto}
+table{border-collapse:separate;border-spacing:0;width:100%;font-size:15px;margin:12px 0;display:block;overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:10px}
+th,td{padding:9px 14px;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+th{background:#e2ede9;color:var(--mask);font-weight:600}tr:last-child td{border-bottom:0}
+tbody tr:hover td{background:#f6faf8}
+svg{max-width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:10px}
+figure{margin:16px 0}figcaption{font-size:14px;color:#4b6159;margin-top:6px}
+details{background:var(--card);border:1px solid var(--line);border-radius:10px;margin:10px 0;padding:10px 18px}
+details[open]{border-color:var(--sig)}
+summary{cursor:pointer;font-weight:600;color:var(--mask)}
+.tag{font-size:12px;padding:2px 10px;border-radius:999px;background:#e2ede9;color:var(--mask);margin-left:8px}
+.q{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 20px;margin:14px 0}
+.q label{display:block;padding:6px 10px;margin:3px 0;border-radius:6px;cursor:pointer}.q label:hover{background:#eef6f3}
+.q input{accent-color:var(--mask);margin-right:8px}
+.q.ok{border:2px solid var(--ok);background:#f4fbf6}.q.no{border:2px solid var(--bad);background:#fdf5f4}.q.na{border:2px solid var(--cu);background:#fdf8f1}
+.ex{display:none;margin-top:8px;font-size:15px;padding-top:8px;border-top:1px dashed var(--line)}.q.done .ex{display:block}
+.res{font:700 20px "Trebuchet MS",sans-serif;margin:14px 0;color:var(--mask)}
+button{background:var(--mask);color:#fff;border:0;border-radius:8px;padding:10px 20px;font:600 15px "Segoe UI",sans-serif;cursor:pointer;margin-right:8px;transition:background .15s}
+button:hover{background:#14634b}button.alt{background:#55645f}
+.pager{display:flex;justify-content:space-between;gap:12px;margin-top:36px;padding-top:20px;border-top:1px solid var(--line)}
+.pager button{background:#fff;color:var(--mask);border:1px solid var(--mask);margin:0}.pager button:hover{background:var(--mask);color:#fff}
+:focus-visible{outline:3px solid var(--cu);outline-offset:2px}
+@media(max-width:820px){body{grid-template-columns:1fr;grid-template-rows:auto auto 1fr}
+nav{grid-column:1;grid-row:2;position:sticky;top:0;height:auto;flex-direction:row;overflow-x:auto;padding:0;z-index:9;white-space:nowrap}
+nav::before{display:none}nav a{padding:13px 16px;border-left:0;border-bottom:3px solid transparent}nav a.on{border-bottom-color:var(--cu)}
+header{grid-column:1;grid-row:1}main{grid-column:1;grid-row:3}header ul{columns:1}}
+@media(prefers-reduced-motion:reduce){section.active{animation:none}}
+@media print{body{display:block}nav,button,.pager{display:none}header{background:#fff;color:#000}header p,header ul{color:#000}section{display:block!important}details>*{display:block}.ex{display:block!important}.eq{background:#fff;color:#000;border:1px solid #999}}
+</style></head><body>
+<header>
+<h1>ESP32 in a Nutshell</h1>
+<p>Subject: Embedded Systems &amp; IoT · Unit: Microcontroller platforms · Topic: ESP32 SoC (dual-core, Wi-Fi + Bluetooth)</p>
+<p>Level: B.E./B.Tech ECE · for college students, GATE aspirants and core-electronics interview candidates.</p>
+<p><b>After this page you can:</b></p>
+<ul><li>Describe the ESP32 architecture</li><li>Choose the right peripheral for a task</li><li>Compute ADC codes and PWM settings</li><li>Estimate battery life with deep sleep</li><li>Avoid common pin and ADC traps</li><li>Answer GATE-style and interview questions</li></ul>
+</header>
+<nav><a href="#intro">Introduction</a><a href="#diagram">Block diagram</a><a href="#working">Working</a><a href="#wave">Waveforms</a><a href="#eq">Equations</a><a href="#solved">Solved problems</a><a href="#gate">GATE</a><a href="#interview">Interview</a><a href="#apps">Applications</a><a href="#quiz">Topic quiz</a><a href="#revise">Revision</a></nav>
+<main>
+
+<section id="intro"><h2>1. Introduction</h2>
+<p>The <b>ESP32</b> is a low-cost system-on-chip (SoC) from Espressif Systems that combines a dual-core 32-bit Xtensa LX6 CPU (up to 240 MHz), 520 KB SRAM, 2.4 GHz Wi-Fi (802.11 b/g/n), Bluetooth (classic + BLE) and a rich set of analog and digital peripherals on one chip. It is usually bought as a module (e.g. ESP32-WROOM-32) with external SPI flash and an antenna, mounted on a development board with a USB-UART bridge.</p>
+<div class="key"><b>Operating principle:</b> the CPU runs firmware stored in external SPI flash (cached into RAM). Peripherals (GPIO, ADC, PWM, UART, I²C, SPI…) are memory-mapped and routed to pins through a GPIO matrix. The radio is driven by a protocol stack running on the same cores under FreeRTOS.</div>
+<p><b>Why it matters:</b> it is the standard entry point to IoT: sensing, control and wireless connectivity for a few dollars, with a mature toolchain (ESP-IDF, Arduino core, MicroPython).</p>
+<h3>Prerequisites</h3><p>Digital logic, number systems, voltage dividers, basic C programming, serial communication basics.</p>
+<h3>Key terminology</h3>
+<table><tr><th>Term</th><th>Meaning</th></tr>
+<tr><td>SoC</td><td>CPU, memory, radio and peripherals integrated on one die</td></tr>
+<tr><td>GPIO matrix</td><td>Switch that routes most peripheral signals to almost any pin</td></tr>
+<tr><td>LEDC</td><td>PWM peripheral (16 channels)</td></tr>
+<tr><td>RTC domain / ULP</td><td>Low-power section that stays on in deep sleep; ULP is a tiny coprocessor</td></tr>
+<tr><td>Strapping pins</td><td>Pins sampled at reset to choose boot mode (e.g. GPIO0, GPIO2, GPIO12)</td></tr>
+<tr><td>BLE</td><td>Bluetooth Low Energy</td></tr></table>
+<h3>Classification (variants of the family)</h3>
+<table><tr><th>Chip</th><th>CPU</th><th>Radio</th></tr>
+<tr><td>ESP32</td><td>Dual Xtensa LX6</td><td>Wi-Fi 4 + BT classic + BLE</td></tr>
+<tr><td>ESP32-S2</td><td>Single Xtensa LX7</td><td>Wi-Fi only, native USB</td></tr>
+<tr><td>ESP32-S3</td><td>Dual Xtensa LX7</td><td>Wi-Fi + BLE, vector instructions for AI</td></tr>
+<tr><td>ESP32-C3</td><td>Single RISC-V</td><td>Wi-Fi + BLE</td></tr></table>
+</section>
+
+<section id="diagram"><h2>2. Block diagram</h2>
+<figure><svg viewBox="0 0 760 420" role="img" aria-label="ESP32 block diagram" font-family="Segoe UI,Arial" font-size="13">
+<rect x="10" y="10" width="740" height="400" fill="#eef3ee" stroke="#0f3d2e" stroke-width="2"/>
+<text x="20" y="30" font-weight="bold">ESP32 SoC (3.3 V supply)</text>
+<g fill="#fff" stroke="#0f3d2e"><rect x="30" y="50" width="130" height="50"/><rect x="30" y="110" width="130" height="50"/><rect x="200" y="50" width="150" height="110"/><rect x="390" y="50" width="170" height="50"/><rect x="390" y="110" width="170" height="50"/><rect x="600" y="50" width="130" height="110"/><rect x="30" y="200" width="200" height="70"/><rect x="260" y="200" width="200" height="70"/><rect x="490" y="200" width="240" height="70"/><rect x="30" y="310" width="330" height="80"/><rect x="390" y="310" width="340" height="80"/></g>
+<g text-anchor="middle"><text x="95" y="80">CPU core 0 (PRO)</text><text x="95" y="140">CPU core 1 (APP)</text>
+<text x="275" y="100">Internal bus &amp;</text><text x="275" y="118">cache controller</text>
+<text x="475" y="80">520 KB SRAM + ROM</text><text x="475" y="140">SPI flash (external)</text>
+<text x="665" y="100">Wi-Fi / BT</text><text x="665" y="118">radio + antenna</text>
+<text x="130" y="230">Digital: GPIO matrix</text><text x="130" y="250">UART · I²C · SPI · I²S · CAN</text>
+<text x="360" y="230">Analog: 12-bit SAR ADC</text><text x="360" y="250">2× 8-bit DAC · touch</text>
+<text x="610" y="230">Timers · LEDC PWM (16 ch)</text><text x="610" y="250">Watchdogs · RMT</text>
+<text x="195" y="345">RTC domain: RTC memory, ULP coprocessor,</text><text x="195" y="365">wake-up logic (deep sleep ~10 µA)</text>
+<text x="560" y="345">Power: LDO regulators, brown-out detector,</text><text x="560" y="365">clock (40 MHz crystal, PLL)</text></g>
+<g stroke="#a8642a" stroke-width="2"><line x1="160" y1="75" x2="200" y2="75"/><line x1="160" y1="135" x2="200" y2="135"/><line x1="350" y1="75" x2="390" y2="75"/><line x1="350" y1="135" x2="390" y2="135"/><line x1="560" y1="105" x2="600" y2="105"/><line x1="275" y1="160" x2="275" y2="200"/><line x1="130" y1="160" x2="130" y2="200"/><line x1="360" y1="270" x2="360" y2="310"/></g></svg>
+<figcaption>Fig. 1 – Simplified ESP32 architecture (illustrative, not a vendor datasheet drawing).</figcaption></figure>
+<table><tr><th>Block</th><th>Function</th></tr>
+<tr><td>Two CPU cores</td><td>Run application and protocol (Wi-Fi/BT) tasks under FreeRTOS</td></tr>
+<tr><td>SRAM / ROM</td><td>Data, instruction cache and boot code</td></tr>
+<tr><td>External SPI flash</td><td>Stores firmware and file system (GPIO6–11 are used for it on most modules)</td></tr>
+<tr><td>ADC / DAC / touch</td><td>Analog sensing and output</td></tr>
+<tr><td>RTC domain</td><td>Keeps time and wake logic alive in deep sleep</td></tr></table>
+</section>
+
+<section id="working"><h2>3. Working principle</h2>
+<ol><li><b>Reset and boot:</b> ROM bootloader reads strapping pins (GPIO0 low = download mode), then loads the second-stage bootloader and app from flash.</li>
+<li><b>Execution:</b> FreeRTOS schedules tasks across both cores; interrupts service peripherals.</li>
+<li><b>Peripheral access:</b> your code writes registers (via driver APIs); the GPIO matrix connects the peripheral signal to a physical pin.</li>
+<li><b>Wireless:</b> the radio and its stack handle packets; your task exchanges data through sockets or BLE services.</li>
+<li><b>Power management:</b> modes range from active (~tens of mA, with Tx bursts higher), modem-sleep, light-sleep, to deep sleep (only RTC alive).</li></ol>
+<h3>Pins and interfaces to remember</h3>
+<table><tr><th>Item</th><th>Fact</th></tr>
+<tr><td>Logic level</td><td>3.3 V, pins are <b>not</b> 5 V tolerant</td></tr>
+<tr><td>Input-only pins</td><td>GPIO34, 35, 36, 39 (no output, no internal pull-up)</td></tr>
+<tr><td>Flash pins</td><td>GPIO6–11, do not use</td></tr>
+<tr><td>DAC</td><td>GPIO25, GPIO26 (8-bit)</td></tr>
+<tr><td>ADC</td><td>12-bit; ADC1 and ADC2; <b>ADC2 cannot be used while Wi-Fi is on</b></td></tr>
+<tr><td>Buses</td><td>3 UART, 2 I²C, SPI, 2 I²S, CAN (TWAI), RMT, 10 touch pins</td></tr></table>
+<h3>Common misconceptions</h3>
+<ul><li>“ESP32 pins tolerate 5 V.” They do not; use a divider or level shifter.</li><li>“The ADC is perfectly linear.” It is noticeably non-linear near the ends and needs calibration.</li><li>“Deep sleep keeps RAM.” Normal SRAM is lost; only RTC memory is retained.</li><li>“Wi-Fi works with any power supply.” Tx bursts draw several hundred mA peaks; weak supplies cause brown-out resets.</li></ul>
+<h3>Advantages and limitations</h3>
+<table><tr><th>Advantages</th><th>Limitations</th></tr><tr><td>Low cost, built-in Wi-Fi/BLE, dual core, large community, many peripherals</td><td>Higher power than ultra-low-power MCUs, 2.4 GHz only, noisy ADC, 3.3 V-only I/O, limited deterministic real-time behaviour when radio is busy</td></tr></table>
+</section>
+
+<section id="wave"><h2>4. Waveforms (illustrative)</h2>
+<p>No simulation screenshot was supplied, so the figure below is an illustrative drawing, not measured data.</p>
+<figure><svg viewBox="0 0 700 220" font-family="Segoe UI,Arial" font-size="12">
+<text x="10" y="20" font-weight="bold">LEDC PWM output, duty = 25 % (top) and 75 % (bottom)</text>
+<polyline fill="none" stroke="#0f3d2e" stroke-width="2" points="40,90 40,50 90,50 90,90 190,90 190,50 240,50 240,90 340,90 340,50 390,50 390,90 490,90 490,50 540,50 540,90 640,90"/>
+<polyline fill="none" stroke="#a8642a" stroke-width="2" points="40,200 40,130 190,130 190,200 190,200 190,130 340,130 340,200 340,130 490,130 490,200 640,200"/>
+<text x="650" y="90">0 V</text><text x="650" y="55">3.3 V</text>
+<line x1="40" y1="105" x2="190" y2="105" stroke="#666"/><text x="85" y="102">T = 1/f</text>
+<text x="40" y="215">Average voltage = duty × 3.3 V (≈ 0.825 V for 25 %, ≈ 2.475 V for 75 %)</text></svg>
+<figcaption>Fig. 2 – PWM waveforms, illustrative. With an RC low-pass filter the output approaches the average value.</figcaption></figure>
+</section>
+
+<section id="eq"><h2>5. Key equations</h2>
+<div class="card"><b>ADC code (ideal)</b>
+<div class="eq">N = floor( V<sub>in</sub> / V<sub>ref</sub> × 2<sup>n</sup> ), LSB = V<sub>ref</sub> / 2<sup>n</sup></div>
+n = bits (12), V in volts, N dimensionless. Derivation: the converter divides 0…V<sub>ref</sub> into 2<sup>n</sup> equal steps, so one step is V<sub>ref</sub>/2<sup>n</sup> and the code is the number of steps that fit in V<sub>in</sub>. Limiting case: V<sub>in</sub> = V<sub>ref</sub> saturates at 2<sup>n</sup>−1 = 4095. The real ESP32 ADC needs attenuation settings and calibration, so treat this as the ideal model.</div>
+<div class="card"><b>PWM resolution and frequency</b>
+<div class="eq">f<sub>PWM,max</sub> = f<sub>clk</sub> / 2<sup>n</sup>, duty count = D × 2<sup>n</sup>, V<sub>avg</sub> = D × V<sub>DD</sub></div>
+f<sub>clk</sub> = timer clock (80 MHz APB source), n = duty bits, D = duty fraction. Higher resolution lowers the maximum frequency.</div>
+<div class="card"><b>Voltage divider (level shifting / battery sensing)</b>
+<div class="eq">V<sub>out</sub> = V<sub>in</sub> · R<sub>2</sub> / (R<sub>1</sub> + R<sub>2</sub>)</div>
+Valid when the load impedance is much greater than R<sub>2</sub>. Large resistors save current but increase ADC error because of finite source impedance.</div>
+<div class="card"><b>Average current and battery life</b>
+<div class="eq">I<sub>avg</sub> = (I<sub>act</sub>·t<sub>act</sub> + I<sub>sleep</sub>·t<sub>sleep</sub>) / T, Life(h) = Capacity(mAh) / I<sub>avg</sub>(mA)</div>
+Ideal estimate; ignores battery self-discharge and regulator losses.</div>
+<div class="card"><b>UART throughput (8N1) and SPI time</b>
+<div class="eq">Bytes/s = baud / 10, t<sub>SPI</sub> = bits / f<sub>SCK</sub></div>
+8N1 = 1 start + 8 data + 1 stop = 10 bits per byte. Decibel and Nyquist: f<sub>s</sub> ≥ 2 f<sub>max</sub>.</div>
+</section>
+
+<section id="solved"><h2>6. Solved problems</h2>
+<div class="card"><h3>Problem 1 (Easy): ADC code</h3>
+A 12-bit ideal ADC with V<sub>ref</sub> = 3.3 V measures 1.65 V. Find the code and the LSB.<br>
+Formula: N = V<sub>in</sub>/V<sub>ref</sub> × 2<sup>12</sup> = (1.65/3.3) × 4096 = 0.5 × 4096 = <b>2048</b>. LSB = 3.3/4096 = <b>0.806 mV</b>.<br>
+<i>Interpretation:</i> mid-scale input gives mid-scale code; each count is under 1 mV, but real noise on the ESP32 ADC is several LSBs.</div>
+<div class="card"><h3>Problem 2 (Moderate): PWM setup</h3>
+Using 10-bit LEDC resolution at 5 kHz with an 80 MHz clock, set 25 % duty. Find the duty count, V<sub>avg</sub> and the maximum possible frequency.<br>
+Duty count = 0.25 × 1024 = <b>256</b>. V<sub>avg</sub> = 0.25 × 3.3 = <b>0.825 V</b>. f<sub>max</sub> = 80×10<sup>6</sup>/1024 = <b>78.125 kHz</b>, so 5 kHz is achievable.<br>
+<i>Interpretation:</i> 10-bit steps give 0.1 % duty resolution; going to 16 bits would cap the frequency near 1.22 kHz.</div>
+<div class="card"><h3>Problem 3 (Difficult, GATE style): battery life</h3>
+An ESP32 sensor node draws 80 mA for 1 s every 10 minutes and 10 µA in deep sleep otherwise. Battery: 2000 mAh. Estimate life and the ADC code if the battery (4.2 V) is read through a 100 kΩ/100 kΩ divider with V<sub>ref</sub> = 3.3 V.<br>
+T = 600 s, t<sub>sleep</sub> = 599 s. I<sub>avg</sub> = (80 mA·1 s + 0.01 mA·599 s)/600 s = (80 + 5.99)/600 = <b>0.1433 mA</b>.<br>
+Life = 2000/0.1433 ≈ 13 955 h ≈ <b>581 days</b> (ideal).<br>
+Divider: V<sub>adc</sub> = 4.2 × 0.5 = 2.1 V; N = 2.1/3.3 × 4096 ≈ <b>2606</b>. Divider current = 4.2 V/200 kΩ = <b>21 µA</b>, which is more than deep-sleep current (10 µA)!<br>
+<i>Interpretation:</i> the sensing divider would dominate sleep power; use larger resistors with a capacitor, or switch the divider on only when sampling.
+<div class="key"><b>Shortcut:</b> in duty-cycled systems, the active burst dominates. Compute the average as active charge per cycle divided by the period.</div></div>
+</section>
+
+<section id="gate"><h2>7. GATE-style practice</h2>
+<p>Ten original practice questions (not previous-year GATE questions). Select answers and press <b>Check answers</b> for scoring and explanations.</p>
+<div id="gateBox"></div></section>
+
+<section id="interview"><h2>8. Interview preparation</h2>
+<div id="ivBox"></div>
+<div class="key"><b>Industry perspective:</b> ESP32-class parts appear in smart-home products, industrial gateways, wearables and asset trackers. Real projects spend most effort on power budget, RF layout (antenna keep-out), OTA firmware updates, certification and production test, not on blinking LEDs.</div>
+</section>
+
+<section id="apps"><h2>9. Applications and industry relevance</h2>
+<table><tr><th>Area</th><th>Example</th></tr>
+<tr><td>Smart home</td><td>Smart plugs, bulbs and sensors (Wi-Fi/BLE provisioning)</td></tr>
+<tr><td>Industrial IoT</td><td>Sensor gateways, MQTT telemetry, predictive maintenance nodes</td></tr>
+<tr><td>Wearables / medical</td><td>BLE health trackers (with proper certification)</td></tr>
+<tr><td>Agriculture</td><td>Battery or solar soil monitors using deep sleep</td></tr>
+<tr><td>Education / R&amp;D</td><td>Rapid prototyping, robotics, test fixtures</td></tr></table>
+<p><b>Design considerations:</b> brown-out margin, antenna placement, ADC calibration, strapping-pin states, thermal limits, secure boot and flash encryption. <b>Test challenges:</b> RF interference, supply droop during Tx, boot failures from pin loading. <b>Roles:</b> embedded firmware engineer, IoT hardware engineer, validation/test engineer, R&amp;D engineer.</p>
+</section>
+
+<section id="quiz"><h2>10. Topic quiz (10 questions)</h2><div id="topicBox"></div></section>
+
+<section id="revise"><h2>11. Revision sheet</h2>
+<table><tr><th>Formula / fact</th><th>Value</th></tr>
+<tr><td>LSB (12-bit, 3.3 V)</td><td>0.806 mV</td></tr><tr><td>f<sub>PWM,max</sub></td><td>80 MHz / 2<sup>n</sup></td></tr><tr><td>UART 8N1 bytes/s</td><td>baud / 10</td></tr><tr><td>Divider</td><td>V<sub>in</sub>·R<sub>2</sub>/(R<sub>1</sub>+R<sub>2</sub>)</td></tr><tr><td>Average current</td><td>Σ(I·t)/T</td></tr></table>
+<h3>Comparison: ESP32 vs Arduino Uno (ATmega328P) vs STM32F103</h3>
+<table><tr><th>Feature</th><th>ESP32</th><th>Uno</th><th>STM32F103</th></tr>
+<tr><td>Core</td><td>Dual 32-bit, 240 MHz</td><td>8-bit AVR, 16 MHz</td><td>32-bit Cortex-M3, 72 MHz</td></tr>
+<tr><td>Logic level</td><td>3.3 V</td><td>5 V</td><td>3.3 V</td></tr>
+<tr><td>Wireless</td><td>Wi-Fi + BT</td><td>None</td><td>None</td></tr>
+<tr><td>ADC</td><td>12-bit (non-linear)</td><td>10-bit</td><td>12-bit</td></tr></table>
+<h3>Troubleshooting</h3>
+<ul><li><b>Boot loop / “brown-out”:</b> weak supply or missing decoupling capacitor.</li><li><b>Cannot flash:</b> GPIO0 held wrong, or USB-UART driver missing.</li><li><b>ADC2 returns garbage:</b> Wi-Fi is active; use ADC1 pins.</li><li><b>Random reset at power-up:</b> external load on strapping pins (GPIO0/2/12/15).</li></ul>
+<h3>Memory aids</h3><p>“Flash pins 6 to 11: leave them alone.” “34 to 39: input only.” “Wi-Fi on, ADC2 gone.”</p>
+</section>
+</main>
+<script>
+const GATE=[
+["LSB of a 12-bit ADC with V_ref = 3.3 V is approximately:",["0.806 mV","3.3 mV","0.322 mV","1.61 mV"],0,"3.3/4096 = 0.806 mV. Using 3.3/1024 gives 3.2 mV (10-bit trap).","Easy"],
+["Maximum LEDC PWM frequency with an 80 MHz clock and 8-bit resolution:",["80 kHz","3.125 MHz","312.5 kHz","78.1 kHz"],2,"80×10⁶/256 = 312.5 kHz. 78.1 kHz corresponds to 10 bits.","Moderate"],
+["5 V is applied to a divider R1 = 1 kΩ (top), R2 = 2 kΩ (bottom). The output voltage is:",["1.67 V","2.50 V","3.33 V","3.75 V"],2,"5×2/(1+2) = 3.33 V, safe for ESP32 inputs (ignoring load).","Easy"],
+["Why do I²C lines need pull-up resistors?",["Devices drive lines open-drain and can only pull low","To increase clock speed","To protect against ESD","To reduce power in sleep"],0,"Open-drain outputs can only sink current; the pull-up creates the logic-high level.","Easy"],
+["Minimum sampling rate to digitize a signal with 8 kHz bandwidth without aliasing:",["8 kS/s","12 kS/s","16 kS/s","4 kS/s"],2,"Nyquist: fs ≥ 2 f_max = 16 kS/s. Practical systems oversample.","Moderate"],
+["A node averages 20 mA from a 1000 mAh battery. Ideal runtime is:",["20 h","50 h","200 h","500 h"],1,"1000/20 = 50 h.","Easy"],
+["Maximum UART data throughput at 115200 baud, 8N1 is:",["14 400 B/s","11 520 B/s","115 200 B/s","9 600 B/s"],1,"10 bits per byte → 115200/10 = 11 520 B/s. 14 400 ignores start and stop bits.","Moderate"],
+["Which statement about the ESP32 ADC is correct?",["ADC2 works normally while Wi-Fi is active","ADC2 cannot be used while Wi-Fi is active","The ADC is perfectly linear","Input range is 0–5 V"],1,"ADC2 is shared with the Wi-Fi driver. Input range is about 0–3.3 V and nonlinear.","Difficult"],
+["An SPI byte is clocked at 10 MHz. The time for 8 bits (no overhead) is:",["0.8 µs","8 µs","80 ns","1.25 µs"],0,"8/10×10⁶ = 0.8 µs. Real transfers add driver and chip-select overhead.","Moderate"],
+["A 3.3 V PWM at 30 % duty is passed through an ideal RC low-pass filter with a time constant much larger than the PWM period. The DC output is about:",["3.30 V","1.65 V","0.99 V","0.30 V"],2,"0.3×3.3 = 0.99 V. The filter extracts the average (DC) value.","Difficult"]];
+const TOPIC=[
+["How many CPU cores does the classic ESP32 have?",["1","2","4","8"],1,"Dual Xtensa LX6 cores (PRO and APP)."],
+["Which frequency band does the ESP32 Wi-Fi use?",["5 GHz only","2.4 GHz","Sub-GHz","60 GHz"],1,"The original ESP32 supports 2.4 GHz 802.11 b/g/n."],
+["GPIO logic level of the ESP32 is:",["1.8 V","3.3 V","5 V","12 V"],1,"Pins are 3.3 V and not 5 V tolerant."],
+["Which pin group is input-only?",["GPIO21–23","GPIO34–39","GPIO25–26","GPIO16–17"],1,"GPIO34, 35, 36, 39 are input only (on common modules)."],
+["Which pins are connected to the module's SPI flash and should be avoided?",["GPIO0–5","GPIO6–11","GPIO12–15","GPIO32–33"],1,"GPIO6–11 carry the flash interface."],
+["What survives in deep sleep?",["All SRAM","Only RTC domain contents","Wi-Fi connection","CPU registers"],1,"Only RTC memory and wake logic stay powered."],
+["Which peripheral generates PWM?",["LEDC","I²S","RMT only","TWAI"],0,"LEDC provides 16 PWM channels (MCPWM also exists)."],
+["Holding GPIO0 low at reset typically selects:",["Normal boot","Serial download mode","Deep sleep","Factory test"],1,"GPIO0 is a strapping pin used to enter download mode."],
+["The ESP32 DAC resolution is:",["6-bit","8-bit","10-bit","12-bit"],1,"Two 8-bit DACs on GPIO25 and GPIO26."],
+["Bluetooth support on the original ESP32 is:",["BLE only","Classic only","Classic + BLE","None"],2,"The original ESP32 supports Bluetooth classic and BLE (later variants differ)."]];
+const IV=[
+["Why is ADC2 unusable with Wi-Fi?","The Wi-Fi driver uses ADC2 internally, so reads fail or conflict. Use ADC1 pins when the radio is on. Follow-up: how would you reduce ADC noise? Average samples, add a 100 nF capacitor, calibrate, avoid sampling during Tx."],
+["How do you read a 4.2 V battery with the ESP32?","Use a resistor divider (e.g. 100 k/100 k) to stay under ~3.3 V full scale, add a capacitor for the sampling source impedance, calibrate. Mention the divider's leakage current in deep-sleep designs."],
+["Explain deep sleep and what you would use for a coin-cell sensor.","Only the RTC domain stays on (~10 µA chip-level). Wake by timer, GPIO or touch; store state in RTC memory. Minimise awake time and Wi-Fi connect time; consider static IP or ESP-NOW."],
+["Board resets when Wi-Fi starts. Debug?","Suspect brown-out from Tx current peaks. Check supply capability, add bulk capacitance (e.g. 100–470 µF) near the module, check wiring resistance, scope the 3.3 V rail."],
+["What are strapping pins and why do they matter?","They are sampled at reset to select boot mode and voltages (GPIO0, 2, 5, 12, 15). External loads can hold them in the wrong state causing boot failure."],
+["PWM versus DAC for generating an analog level?","PWM plus RC filter is flexible and available on many pins but has ripple and settling time; the 8-bit DAC gives a true analog output with limited resolution on only two pins."],
+["How do two cores help, and what is the risk?","Run protocol stack and application separately, pin tasks to cores. Risks: shared-resource races, priority inversion; use mutexes, queues and watchdog."],
+["I²C device is not detected. Steps?","Check pull-ups (4.7 kΩ typical), address, 3.3 V levels, wiring, bus speed, scan for the address, probe SDA/SCL with a scope or logic analyser."],
+["How would you validate an ESP32 product in production?","Flash firmware over UART, run a self-test (GPIO loopback, ADC reference, RF test mode), check current in sleep and active, verify firmware version and MAC, log results."],
+["Why choose ESP32 over STM32 or an AVR?","Integrated Wi-Fi/BLE, price and ecosystem win for IoT. STM32 often wins for hard real-time, precise analog or ultra-low power; AVR for simplicity and 5 V legacy."]];
+function quiz(id,data,gate){
+ const box=document.getElementById(id);
+ box.innerHTML=data.map((d,i)=>`<div class="q" id="${id}q${i}"><b>Q${i+1}.</b> ${d[0]}${gate?`<span class="tag">${d[4]}</span>`:''}`+
+ d[1].map((o,j)=>`<label><input type="radio" name="${id}${i}" value="${j}"> ${'ABCD'[j]}. ${o}</label>`).join('')+`<div class="ex"></div></div>`).join('')+
+ `<button>Check answers</button><button class="alt">Reset</button><div class="res" aria-live="polite"></div>`;
+ const [chk,rst]=box.querySelectorAll('button'),res=box.querySelector('.res');
+ chk.onclick=()=>{let s=0,u=0;data.forEach((d,i)=>{const q=document.getElementById(id+'q'+i),sel=box.querySelector(`input[name=${id}${i}]:checked`);
+  q.classList.remove('ok','no','na');q.classList.add('done');let m;
+  if(!sel){u++;q.classList.add('na');m='Unanswered. '}else if(+sel.value===d[2]){s++;q.classList.add('ok');m='Correct. '}else{q.classList.add('no');m='Incorrect. '}
+  q.querySelector('.ex').innerHTML=`<b>${m}</b>Answer: ${'ABCD'[d[2]]}. ${d[3]}`});
+  res.textContent=`Score: ${s}/10 (${s*10}%) · Unanswered: ${u}`};
+ rst.onclick=()=>{box.querySelectorAll('input').forEach(x=>x.checked=false);box.querySelectorAll('.q').forEach(q=>q.className='q');box.querySelectorAll('.ex').forEach(e=>e.innerHTML='');res.textContent=''};
+}
+quiz('gateBox',GATE,true);quiz('topicBox',TOPIC,false);
+document.getElementById('ivBox').innerHTML=IV.map((d,i)=>`<details><summary>${i+1}. ${d[0]}</summary><p>${d[1]}</p></details>`).join('');
+
+const secs=[...document.querySelectorAll('main>section')],links=[...document.querySelectorAll('nav a')];
+secs.forEach((sec,i)=>{const d=document.createElement('div');d.className='pager';
+ const prev=secs[i-1],next=secs[i+1];
+ d.innerHTML=(prev?`<button data-go="${prev.id}">Previous: ${prev.querySelector('h2').textContent.replace(/^\d+\.\s*/,'')}</button>`:'<span></span>')+(next?`<button data-go="${next.id}">Next: ${next.querySelector('h2').textContent.replace(/^\d+\.\s*/,'')}</button>`:'<span></span>');
+ sec.appendChild(d)});
+function show(id,push){const t=secs.find(x=>x.id===id)||secs[0];
+ secs.forEach(x=>x.classList.toggle('active',x===t));links.forEach(a=>a.classList.toggle('on',a.getAttribute('href')==='#'+t.id));
+ document.title=t.querySelector('h2').textContent+' - ESP32 in a Nutshell';window.scrollTo(0,0);
+ if(push){try{history.replaceState(null,'','#'+t.id)}catch(e){}}}
+links.forEach(a=>a.addEventListener('click',e=>{e.preventDefault();show(a.getAttribute('href').slice(1),true)}));
+document.querySelectorAll('.pager button').forEach(b=>b.addEventListener('click',()=>show(b.dataset.go,true)));
+addEventListener('hashchange',()=>show(location.hash.slice(1)));
+show(location.hash.slice(1)||secs[0].id);
+</script></body></html>
